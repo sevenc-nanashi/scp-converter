@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
         type: "uint8array",
       })
       downloadButton.href = URL.createObjectURL(
-        new Blob([newData], { type: "application/zip" })
+        new Blob([newData], { type: "application/octet-stream" })
       )
       downloadButton.download = originalInput.files[0].name.replace(
         ".scp",
