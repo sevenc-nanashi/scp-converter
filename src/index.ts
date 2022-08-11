@@ -92,6 +92,14 @@ document.addEventListener("DOMContentLoaded", () => {
           })
           log("is engine data, deferred")
           continue
+        } else if (dir.endsWith("levels")) {
+          // Defer engine processing
+          deferredEffects.push({
+            type: "level",
+            path: file.name,
+          })
+          log("is level data, deferred")
+          continue
         }
         let finalData: Uint8Array
         if (dir.endsWith("EffectData")) {
