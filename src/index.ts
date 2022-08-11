@@ -1,21 +1,37 @@
 import JSZip from "jszip"
-import { EffectData, EffectItem } from "sonolus-core"
+import {
+  EffectData,
+  EffectItem,
+  EngineItem,
+  LevelItem,
+  Section,
+  ServerInfo,
+} from "sonolus-core"
 import {
   EffectData as EffectDataOld,
   EffectItem as EffectItemOld,
   EngineItem as EngineItemOld,
+  LevelItem as LevelItemOld,
 } from "sonolus-core-old"
 
 import "bootstrap/dist/css/bootstrap.min.css"
 import "./styles/index.scss"
 
-const logTextArea = document.getElementById("log") as HTMLTextAreaElement
-const log = (text: string, breakline = true) => {
-  logTextArea.value += breakline ? `${text}\n` : text
-  logTextArea.scrollTop = logTextArea.scrollHeight
-}
+const EntryType = [
+  "levels",
+  "skins",
+  "backgrounds",
+  "effects",
+  "particles",
+  "engines",
+]
 
 document.addEventListener("DOMContentLoaded", () => {
+  const logTextArea = document.getElementById("log") as HTMLTextAreaElement
+  const log = (text: string, breakline = true) => {
+    logTextArea.value += breakline ? `${text}\n` : text
+    logTextArea.scrollTop = logTextArea.scrollHeight
+  }
   const form = document.getElementById("form") as HTMLFormElement
   const fieldset = document.getElementById("fieldset") as HTMLFieldSetElement
   const originalInput = document.getElementById("scp") as HTMLInputElement
@@ -38,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await oldZip.loadAsync(originalInput.files[0])
       const newZip = new JSZip()
       const deferredEffects: {
-        type: "effect" | "engine"
+        type: "effect" | "engine" | "level"
         path: string
       }[] = []
       const newEffectDataMap: Map<string, string> = new Map()
@@ -161,23 +177,49 @@ document.addEventListener("DOMContentLoaded", () => {
             },
           }
         }
-        if (type === "engine") {
-          if (path.endsWith("list")) {
-            oldData.items = oldData.items.map((item: EngineItemOld) => ({
-              ...item,
-              version: 6,
-              effect: upgradeEffect(item.effect),
-            }))
-          } else {
-            oldData.item.version = 6
-            oldData.item.effect = upgradeEffect(oldData.item.effect)
-          }
-        } else {
-          if (path.endsWith("list")) {
-            oldData.items = oldData.items.map(upgradeEffect)
-          } else {
-            oldData.item = upgradeEffect(oldData.item)
-          }
+
+        const upgradeEngine = (engine: EngineItemOld): EngineItem => ({
+          ...engine,
+          version: 6,
+          effect: upgradeEffect(engine.effect),
+        })
+
+        const upgradeLevel = (level: LevelItemOld): LevelItem => ({
+          ...level,
+          engine: upgradeEngine(level.engine),
+          useEffect: level.useEffect.useDefault
+            ? {
+                useDefault: true,
+                item: undefined,
+              }
+            : {
+                useDefault: false,
+                item: upgradeEffect(level.useEffect.item),
+              },
+        })
+
+        switch (type) {
+          case "engine":
+            if (path.endsWith("list")) {
+              oldData.items = oldData.items.map(upgradeEngine)
+            } else {
+              oldData.item = upgradeEngine(oldData.item)
+            }
+            break
+          case "effect":
+            if (path.endsWith("list")) {
+              oldData.items = oldData.items.map(upgradeEffect)
+            } else {
+              oldData.item = upgradeEffect(oldData.item)
+            }
+            break
+          case "level":
+            if (path.endsWith("list")) {
+              oldData.items = oldData.items.map(upgradeLevel)
+            } else {
+              oldData.item = upgradeLevel(oldData.item)
+            }
+            break
         }
         log(`Writing to sonolus/${path}`)
         newZip.file(
@@ -185,6 +227,45 @@ document.addEventListener("DOMContentLoaded", () => {
           new TextEncoder().encode(JSON.stringify(oldData))
         )
       }
+      log("\n== Creating missing list...")
+      for (const type of EntryType) {
+        if (newZip.file(`sonolus/${type}/list`)) {
+          log(`sonolus/${type}/list exists, skipping`)
+          continue
+        }
+        log(`Creating sonolus/${type}/list`)
+        newZip.file(
+          `sonolus/${type}/list`,
+          new TextEncoder().encode(
+            JSON.stringify({ pageCount: 1, items: [], search: { options: [] } })
+          )
+        )
+      }
+      log("\n== Creating info...")
+      newZip.file(
+        "sonolus/info",
+        new TextEncoder().encode(
+          JSON.stringify(
+            Object.fromEntries(
+              await Promise.all(
+                EntryType.map(async (type) => [
+                  type,
+                  {
+                    items: JSON.parse(
+                      new TextDecoder().decode(
+                        await newZip
+                          .file(`sonolus/${type}/list`)
+                          .async("uint8array")
+                      )
+                    ).items,
+                  } as Section<never>,
+                ])
+              )
+            ) as ServerInfo
+          )
+        )
+      )
+
       log("\n== Zipping new SCP...")
       console.log(newEffectDataMap, newEffectAudioMap)
       const newData = await newZip.generateAsync({
