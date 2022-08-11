@@ -1,0 +1,13 @@
+body {
+  min-height: 100vh;
+}
+
+main {
+  padding-left: max(10vw, 1rem);
+  padding-right: max(10vw, 1rem);
+  margin: 0 auto;
+}
+
+#log {
+  resize: none;
+}
