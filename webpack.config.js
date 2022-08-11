@@ -1,11 +1,24 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
+const fs = require("fs")
 const path = require("path")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
+const { DefinePlugin } = require("webpack")
 
 const isProduction = process.env.NODE_ENV == "production"
 
 const stylesHandler = "style-loader"
+
+const rev = fs.readFileSync(".git/HEAD").toString().trim()
+let commit_sha
+if (rev.indexOf(":") === -1) {
+  commit_sha = rev
+} else {
+  commit_sha = fs
+    .readFileSync(".git/" + rev.substring(5))
+    .toString()
+    .trim()
+}
 
 const config = {
   entry: "./src/index.ts",
@@ -19,6 +32,9 @@ const config = {
   plugins: [
     new HtmlWebpackPlugin({
       template: "index.html",
+    }),
+    new DefinePlugin({
+      COMMIT_SHA: JSON.stringify(commit_sha),
     }),
   ],
   module: {

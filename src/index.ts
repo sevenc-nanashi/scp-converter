@@ -38,6 +38,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const downloadButton = document.getElementById(
     "download"
   ) as HTMLAnchorElement
+  const commitLink = document.getElementById("commit-link") as HTMLAnchorElement
+  const commitBadge = document.getElementById(
+    "commit-badge"
+  ) as HTMLImageElement
+  commitLink.href = commitLink.href.replace("~SHA~", COMMIT_SHA)
+  commitBadge.src = commitBadge.src.replace("~SHA~", COMMIT_SHA)
   form.addEventListener("submit", async (e) => {
     e.preventDefault()
     logTextArea.value = ""
