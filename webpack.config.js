@@ -32,7 +32,7 @@ const config = {
   entry: "./src/index.ts",
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "js/[hash].js",
+    filename: "js/[fullhash].js",
   },
   devServer: {
     open: true,
@@ -41,7 +41,8 @@ const config = {
   plugins: [
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
-      template: "index.html",
+      template: "index.html.ejs",
+      filename: "index.html",
     }),
     new DefinePlugin({
       COMMIT_SHA: JSON.stringify(commit_sha),
@@ -70,6 +71,25 @@ const config = {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
         type: "asset",
       },
+      {
+        test: /\.ejs$/i,
+        use: [
+          {
+            loader: "html-loader",
+            options: {
+              minimize: true,
+              sources: false
+            },
+          },
+          {
+            loader: "ejs-html-loader",
+            options: {
+              mode: isProduction ? "production" : "development",
+              commit_sha: commit_sha,
+            },
+          },
+        ],
+      },
 
       // Add your rules for custom modules here
       // Learn more about loaders from https://webpack.js.org/loaders/
@@ -82,7 +102,7 @@ const config = {
     minimizer: ["...", new CssMinimizerPlugin()],
   },
   externals: {
-    zlibjs: "Zlib",
+    vue: "Vue",
   },
 }
 
