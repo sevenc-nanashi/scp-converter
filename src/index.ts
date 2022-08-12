@@ -42,8 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const commitBadge = document.getElementById(
     "commit-badge"
   ) as HTMLImageElement
-  commitLink.href = commitLink.href.replace("~SHA~", COMMIT_SHA)
-  commitBadge.src = commitBadge.src.replace("~SHA~", COMMIT_SHA)
+  commitLink.href = commitLink.href.replace("~SHA~", COMMIT_SHA.substring(0, 7))
+  commitBadge.src = commitBadge.src.replace("~SHA~", COMMIT_SHA.substring(0, 7))
   form.addEventListener("submit", async (e) => {
     e.preventDefault()
     logTextArea.value = ""
