@@ -14,7 +14,7 @@ export default {
   },
   ja: {
     about: {
-      main: `Sonolus 0.5.13で作られたSCP (Sonolus Collection Package)を0.6.0で読み込めるようにするアプリ。ファイルはサーバーに送信{0}すべての作業はローカルで行われます。`,
+      main: `Sonolus 0.5.13で作られたSCPファイル（Sonolus Collection Package）を0.6.0で読み込めるようにするアプリ。ファイルはサーバーに送信{0}すべての作業はローカルで行われます。`,
       notSent: "されません。",
       madeBy: "開発：{0}",
       sevenc7c: "名無し｡ ({'@'}sevenc-nanashi)",
