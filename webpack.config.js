@@ -20,10 +20,14 @@ if (rev.indexOf(":") === -1) {
     .trim()
 }
 
+/**
+ * @type {import('webpack').Configuration}
+ */
 const config = {
   entry: "./src/index.ts",
   output: {
     path: path.resolve(__dirname, "dist"),
+    filename: "js/[hash].js"
   },
   devServer: {
     open: true,
