@@ -32,7 +32,7 @@ const config = {
   entry: "./src/index.ts",
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "js/[hash].js",
+    filename: "js/[fullhash].js",
   },
   devServer: {
     open: true,
@@ -74,7 +74,13 @@ const config = {
       {
         test: /\.ejs$/i,
         use: [
-          "html-loader",
+          {
+            loader: "html-loader",
+            options: {
+              minimize: true,
+              sources: false
+            },
+          },
           {
             loader: "ejs-html-loader",
             options: {
@@ -96,7 +102,7 @@ const config = {
     minimizer: ["...", new CssMinimizerPlugin()],
   },
   externals: {
-    zlibjs: "Zlib",
+    vue: "Vue",
   },
 }
 
