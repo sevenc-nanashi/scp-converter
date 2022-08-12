@@ -35,8 +35,7 @@ const config = {
     filename: "js/[fullhash].js",
   },
   devServer: {
-    open: true,
-    host: "localhost",
+    host: "0.0.0.0",
   },
   plugins: [
     new MiniCssExtractPlugin(),

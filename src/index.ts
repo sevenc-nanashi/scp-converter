@@ -3,6 +3,8 @@ import {
   EffectData,
   EffectItem,
   EngineItem,
+  ItemDetails,
+  ItemList,
   LevelItem,
   Section,
   ServerInfo,
@@ -53,6 +55,9 @@ Vue.createApp({
       this.logtext += breakline ? `${text}\n` : text
       this.$refs.logTextarea.scrollTop = this.$refs.logTextarea.scrollHeight
     },
+    sanitizeName(name: string) {
+      return encodeURIComponent(name).replaceAll(/(%[0-9a-f]{2})+/g, "-")
+    },
     async processFile(e: SubmitEvent) {
       e.preventDefault()
       this.logtext = ""
@@ -83,9 +88,37 @@ Vue.createApp({
           const data = await file.async("uint8array")
           let name = file.name.split("/").pop()
           let dir = file.name.split("/").slice(0, -1).join("/")
+          let finalData: Uint8Array
+
           if (!dir.startsWith("repository")) {
             // General sonolus jsons
             dir = "sonolus/" + dir
+            name = this.sanitizeName(name)
+            if (dir !== "") {
+              let newData
+              if (name === "list") {
+                this.log("is list, sanitizing names")
+                newData = JSON.parse(
+                  new TextDecoder().decode(data)
+                ) as ItemList<{
+                  name: string
+                }>
+                for (const item of newData.items) {
+                  item.name = this.sanitizeName(item.name)
+                }
+              } else {
+                this.log("is normal data file, sanitizing its name")
+                newData = JSON.parse(
+                  new TextDecoder().decode(data)
+                ) as ItemDetails<{
+                  name: string
+                }>
+                newData.item.name = this.sanitizeName(newData.item.name)
+              }
+              finalData = new Uint8Array(
+                new TextEncoder().encode(JSON.stringify(newData))
+              )
+            }
           }
           if (dir.endsWith("EffectClip")) {
             // Don't bundle EffectClip
@@ -116,7 +149,6 @@ Vue.createApp({
             this.log("is level data, deferred")
             continue
           }
-          let finalData: Uint8Array
           if (dir.endsWith("EffectData")) {
             this.log("is EffectData, converting")
             // Use hash as filename
@@ -184,6 +216,10 @@ Vue.createApp({
               await oldZip.file(path).async("uint8array")
             )
           )
+          const newPath = path.replace(
+            /\/(.+)$/,
+            (name) => `/${this.sanitizeName(name.substring(1))}`
+          )
           const upgradeEffect = (effect: EffectItemOld): EffectItem => {
             const newEffectDataName = newEffectDataMap.get(effect.data.hash)
             const newEffectAudioName = newEffectAudioMap.get(effect.data.hash)
@@ -246,9 +282,16 @@ Vue.createApp({
               }
               break
           }
-          this.log(`Writing to sonolus/${path}`)
+          if (path.endsWith("list")) {
+            for (const item of oldData.items) {
+              item.name = this.sanitizeName(item.name)
+            }
+          } else {
+            oldData.item.name = this.sanitizeName(oldData.item.name)
+          }
+          this.log(`Writing to sonolus/${newPath}`)
           newZip.file(
-            `sonolus/${path}`,
+            `sonolus/${newPath}`,
             new TextEncoder().encode(JSON.stringify(oldData))
           )
         }
