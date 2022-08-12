@@ -19,9 +19,14 @@
     />
     <meta property="og:url" content="https://sevenc7c.com/scp-converter" />
     <meta property="og:type" content="website" />
+    <%_ if (mode === "production") { _%>
+      <script src="https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.prod.js"></script>
+    <%_ } else { _%>
+      <script src="https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.js"></script>
+    <%_ } _%>
   </head>
   <body class="">
-    <main class="py-3">
+    <main class="py-3" id="main">
       <h3>Sonolus SCP Converter</h3>
       <p>
         All your files will <b>NOT</b> be sent to server.<br />
@@ -70,13 +75,13 @@
             src="https://img.shields.io/github/stars/sevenc-nanashi/scp-converter?logo=github"
         /></a>
         <a
-          href="https://github.com/sevenc-nanashi/scp-converter/tree/~SHA~"
+          href=<%= `https://github.com/sevenc-nanashi/scp-converter/tree/${commit_sha}` %>
           id="commit-link"
           target="_blank"
           ><img
             alt="GitHub SHA"
             id="commit-badge"
-            src="https://img.shields.io/badge/Commit%20SHA-~SHA~-blue?logo=git&logoColor=fff"
+            src=<%= `https://img.shields.io/badge/Commit%20SHA-${commit_sha.substring(0, 7)}-blue?logo=git&logoColor=fff` %>
         /></a>
       </div>
     </main>

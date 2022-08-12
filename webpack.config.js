@@ -41,7 +41,8 @@ const config = {
   plugins: [
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
-      template: "index.html",
+      template: "index.html.ejs",
+      filename: "index.html",
     }),
     new DefinePlugin({
       COMMIT_SHA: JSON.stringify(commit_sha),
@@ -69,6 +70,19 @@ const config = {
       {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
         type: "asset",
+      },
+      {
+        test: /\.ejs$/i,
+        use: [
+          "html-loader",
+          {
+            loader: "ejs-html-loader",
+            options: {
+              mode: isProduction ? "production" : "development",
+              commit_sha: commit_sha,
+            },
+          },
+        ],
       },
 
       // Add your rules for custom modules here

@@ -35,10 +35,6 @@ const form = document.getElementById("form") as HTMLFormElement
 const fieldset = document.getElementById("fieldset") as HTMLFieldSetElement
 const originalInput = document.getElementById("scp") as HTMLInputElement
 const downloadButton = document.getElementById("download") as HTMLAnchorElement
-const commitLink = document.getElementById("commit-link") as HTMLAnchorElement
-const commitBadge = document.getElementById("commit-badge") as HTMLImageElement
-commitLink.href = commitLink.href.replace("~SHA~", COMMIT_SHA.substring(0, 7))
-commitBadge.src = commitBadge.src.replace("~SHA~", COMMIT_SHA.substring(0, 7))
 form.addEventListener("submit", async (e) => {
   e.preventDefault()
   logTextArea.value = ""
