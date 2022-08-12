@@ -1,13 +1,18 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
 const fs = require("fs")
+const glob = require("glob")
 const path = require("path")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const { DefinePlugin } = require("webpack")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
+const RemoveEmptyScriptsPlugin = require("webpack-remove-empty-scripts")
+const PurgecssPlugin = require("purgecss-webpack-plugin")
 
 const isProduction = process.env.NODE_ENV == "production"
 
-const stylesHandler = "style-loader"
+// const stylesHandler =  // "style-loader"
 
 const rev = fs.readFileSync(".git/HEAD").toString().trim()
 let commit_sha
@@ -27,18 +32,23 @@ const config = {
   entry: "./src/index.ts",
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "js/[hash].js"
+    filename: "js/[hash].js",
   },
   devServer: {
     open: true,
     host: "localhost",
   },
   plugins: [
+    new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
       template: "index.html",
     }),
     new DefinePlugin({
       COMMIT_SHA: JSON.stringify(commit_sha),
+    }),
+    new RemoveEmptyScriptsPlugin(),
+    new PurgecssPlugin({
+      paths: glob.sync(`./**/*`, { nodir: true }),
     }),
   ],
   module: {
@@ -50,11 +60,11 @@ const config = {
       },
       {
         test: /\.css$/i,
-        use: [stylesHandler, "css-loader"],
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
       {
         test: /\.s[ac]ss$/i,
-        use: [stylesHandler, "css-loader", "sass-loader"],
+        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
       },
       {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
@@ -68,6 +78,9 @@ const config = {
   resolve: {
     extensions: [".tsx", ".ts", ".jsx", ".js", "..."],
   },
+  optimization: {
+    minimizer: ["...", new CssMinimizerPlugin()],
+  },
   externals: {
     zlibjs: "Zlib",
   },
@@ -78,6 +91,7 @@ module.exports = () => {
     // const WorkboxWebpackPlugin = require("workbox-webpack-plugin")
     // const WebpackPwaManifest = require("webpack-pwa-manifest")
     config.mode = "production"
+    config.optimization.minimize = true
 
     // config.plugins.push(new WorkboxWebpackPlugin.GenerateSW())
     // config.plugins.push(
