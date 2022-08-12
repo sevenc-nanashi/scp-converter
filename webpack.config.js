@@ -102,7 +102,8 @@ const config = {
     minimizer: ["...", new CssMinimizerPlugin()],
   },
   externals: {
-    vue: "Vue",
+    "vue": "Vue",
+    "vue-i18n": "VueI18n",
   },
 }
 

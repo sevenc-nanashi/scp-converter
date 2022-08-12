@@ -13,7 +13,16 @@ import {
   EngineItem as EngineItemOld,
   LevelItem as LevelItemOld,
 } from "sonolus-core-old"
-import Vue from "vue"
+import * as Vue from "vue"
+import * as VueI18n from "vue-i18n"
+
+import messages from "./i18n"
+
+const i18n = VueI18n.createI18n({
+  locale: navigator.language,
+  fallbackLocale: "en",
+  messages,
+})
 
 import "bootstrap/dist/css/bootstrap.min.css"
 import "./styles/index.scss"
@@ -307,4 +316,6 @@ Vue.createApp({
       }
     },
   },
-}).mount("#main")
+})
+  .use(i18n)
+  .mount("#main")

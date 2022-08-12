@@ -11,21 +11,25 @@
   <meta property="og:description" content="App converts SCP (Sonolus Collection Package) file between 0.5.13 and 0.6.0." />
   <meta property="og:url" content="https://sevenc7c.com/scp-converter" />
   <meta property="og:type" content="website" />
-  <%_ if (mode === "production") { _%>
-  <script src="https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.prod.js"></script>
-  <%_ } else { _%>
-  <script src="https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.js"></script>
-  <%_ } _%>
+  <script src="https://unpkg.com/vue@3.2.37"></script>
+  <script src="https://unpkg.com/vue-i18n@9.2.2"></script>
 </head>
 
 <body class="">
   <main class="py-3" id="main">
     <h3>Sonolus SCP Converter</h3>
     <p>
-      All your files will <b>NOT</b> be sent to server.<br />
-      All operations will be done locally. <br />
-      This app was made by
-      <a href="https://github.com/sevenc-nanashi" target="_blank">Nanashi. (@sevenc-nanashi)</a>.
+      <i18n-t keypath="about.main">
+        <b>
+          {{ $t("about.notSent") }}
+        </b>
+      </i18n-t>
+      <br>
+      <i18n-t keypath="about.madeBy">
+        <a href="https://github.com/sevenc-nanashi" target="_blank">
+          {{ $t("about.sevenc7c") }}
+        </a>
+      </i18n-t>
     </p>
     <form action="#" id="form" v-on:submit="processFile">
       <fieldset id="fieldset" v-bind:disabled="!formActive">
@@ -33,19 +37,18 @@
 
         <div class="pt-4">
           <button class="btn btn-primary" type="submit" id="start">
-            Convert
+            {{ $t("app.convert") }}
           </button>
         </div>
       </fieldset>
     </form>
     <hr />
-    <h4>Logs</h4>
-    <textarea class="font-monospace block w-100 form-rounded form-control" id="log" rows="10" autocomplete="off" ref="logTextarea" disabled>
-    {{ logtext }}
-    </textarea>
+    <h4>
+      {{ $t("app.log") }}
+    </h4>
+    <textarea class="font-monospace block w-100 form-rounded form-control" id="log" rows="10" autocomplete="off" ref="logTextarea" disabled><!-- -->{{ logtext }}<!-- --></textarea>
     <a class="btn btn-primary mt-4" id="download" v-bind:disabled="!download.active" v-bind:class="{ disabled: !download.active }" v-bind:download="download.name" v-bind:href="download.url">
-      Download:
-      {{ download.active ? download.name : "-" }}
+      {{ $t("app.download", { name: download.active ? download.name : "-" }) }}
     </a>
     <hr />
     <div class="pt-1 gap-3 d-flex">
