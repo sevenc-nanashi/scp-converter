@@ -1,15 +1,22 @@
 import JSZip from "jszip"
 import {
+  BackgroundItem,
   EffectData,
   EffectItem,
   EngineItem,
+  SkinItem,
+  ParticleItem,
   ItemDetails,
   ItemList,
   LevelItem,
   Section,
   ServerInfo,
+  UseItem,
 } from "sonolus-core"
 import {
+  BackgroundItem as BackgroundItemOld,
+  SkinItem as SkinItemOld,
+  ParticleItem as ParticleItemOld,
   EffectData as EffectDataOld,
   EffectItem as EffectItemOld,
   EngineItem as EngineItemOld,
@@ -53,10 +60,17 @@ Vue.createApp({
   methods: {
     log(text: string, breakline = true) {
       this.logtext += breakline ? `${text}\n` : text
+      this.$forceUpdate()
       this.$refs.logTextarea.scrollTop = this.$refs.logTextarea.scrollHeight
     },
     sanitizeName(name: string) {
       return encodeURIComponent(name).replaceAll(/(%[0-9a-f]{2})+/g, "-")
+    },
+    sanitizeNameField<T extends { name: string }>(field: T): T {
+      return {
+        ...field,
+        name: this.sanitizeName(field.name),
+      }
     },
     async processFile(e: SubmitEvent) {
       e.preventDefault()
@@ -225,6 +239,7 @@ Vue.createApp({
             const newEffectAudioName = newEffectAudioMap.get(effect.data.hash)
             return {
               ...effect,
+              name: this.sanitizeName(effect.name),
               version: 3,
               data: {
                 type: "EffectData",
@@ -239,8 +254,24 @@ Vue.createApp({
             }
           }
 
+          const upgradeUseItem = <T extends { name: string }, U>(
+            useItem: UseItem<T>,
+            upgrader: (item: T) => U
+          ): UseItem<U> => {
+            return useItem.useDefault
+              ? {
+                  useDefault: true,
+                  item: undefined,
+                }
+              : {
+                  useDefault: false,
+                  item: upgrader(useItem.item),
+                }
+          }
+
           const upgradeEngine = (engine: EngineItemOld): EngineItem => ({
             ...engine,
+            name: this.sanitizeName(engine.name),
             version: 6,
             effect: upgradeEffect(engine.effect),
           })
@@ -248,15 +279,22 @@ Vue.createApp({
           const upgradeLevel = (level: LevelItemOld): LevelItem => ({
             ...level,
             engine: upgradeEngine(level.engine),
-            useEffect: level.useEffect.useDefault
-              ? {
-                  useDefault: true,
-                  item: undefined,
-                }
-              : {
-                  useDefault: false,
-                  item: upgradeEffect(level.useEffect.item),
-                },
+            useEffect: upgradeUseItem<EffectItemOld, EffectItem>(
+              level.useEffect,
+              upgradeEffect
+            ),
+            useBackground: upgradeUseItem<BackgroundItemOld, BackgroundItem>(
+              level.useBackground,
+              this.sanitizeNameField
+            ),
+            useParticle: upgradeUseItem<ParticleItemOld, ParticleItem>(
+              level.useParticle,
+              this.sanitizeNameField
+            ),
+            useSkin: upgradeUseItem<SkinItemOld, SkinItem>(
+              level.useSkin,
+              this.sanitizeNameField
+            ),
           })
 
           switch (type) {
